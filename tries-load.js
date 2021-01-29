@@ -1,8 +1,7 @@
 const utils = require('ethereumjs-util');
 const fs = require("fs");
 const readline = require('readline');
-const blocks = require('./blocks-module');
-const Statistics = require('./blocks-module').Statistics;
+const trie = require('./tries-module');
 const Account = require('ethereumjs-account').default;
 const Transaction = require('ethereumjs-tx').Transaction;
 const async = require('async');
@@ -17,7 +16,7 @@ const BLOCKS_IN_PARALLEL=100;
  * @param cb callback
  * @param onLine invoked when file is processed
  */
-function readInputTries(file, onLine) {
+function readInputTries(file, cb) {
     const stream = fs.createReadStream(file);
     const rl = readline.createInterface({
         input: stream,
@@ -30,25 +29,38 @@ function readInputTries(file, onLine) {
         const blockHashStr = items[1];
         const blockDepth = items[2];
 
-        onLine(blockNumber, blockHashStr);
+        cb(blockNumber, blockHashStr, blockDepth);
     });
 
-    rl.on('close', () => onLine(null, null));  // null signals end
+    // rl.on('close', () => onLine(null, null));
+}
+
+function readInputCSVFiles(path, cb) {
+    fs.readdir(path, (err, files) => {
+
+        if (err) { console.error("Could not list the directory.", err); return; }
+
+        files.forEach((file, index) => {
+            if (file.endsWith(".csv"))
+                cb(path + file);
+        });
+    });
 }
 
 /**
  * Dump a trie for the hash in a CSV file
  * @param blockNumber
  * @param blockHashStr
+ * @param blockDepth trie height
  */
-function dumpTrie(blockNumber, blockHashStr) {
-    const FILE_NAME = CSV_PATH_RES + "/trie_" + blockHashStr + ".csv";
+function dumpTrie(blockNumber, blockHashStr, blockDepth) {
+    const FILE_NAME = CSV_PATH_RES + "/trie_" + blockNumber + "_" + blockDepth + "_" + blockHashStr + ".csv";
     const stream = fs.createWriteStream(FILE_NAME)
     const stateRoot = utils.toBuffer(blockHashStr);
 
     console.time('Storage-trie-' + blockNumber);
 
-    blocks.iterateSecureTrie(stateRoot, (key, value, node, depth) => {
+    trie.iterateSecureTrie(stateRoot, (key, value, node, depth) => {
 
         // we have value when the leaf has bean reached
         if (value) {
@@ -71,16 +83,18 @@ function dumpTrie(blockNumber, blockHashStr) {
  */
 const args = process.argv.slice(2);
 const dbPath = args[0];
-const inputTries = args[1];
-const outputTrie = args[1];
+// const inputTries = args[1];
+// const outputTrie = args[1];
 
 const CSV_FILE_INPUT = "csv_input/";
 const CSV_PATH_RES = "csv_dump/";
 
 main = function () {
-    readInputTries(inputTries, dumpTrie)
+    const dumpTrieCB = (file) => readInputTries(file, dumpTrie)
+    readInputCSVFiles(CSV_FILE_INPUT, dumpTrieCB)
+    // readInputTries(inputTries, dumpTrie)
 }
 
 /** Init with DB path. */
-blocks.init(dbPath, main);
+trie.init(dbPath, main);
 
