@@ -58,9 +58,9 @@ function dumpTrie(blockNumber, blockHashStr, blockDepth) {
     const stream = fs.createWriteStream(FILE_NAME)
     const stateRoot = utils.toBuffer(blockHashStr);
 
-    console.time('Storage-trie-' + blockNumber);
+    console.time('Storage-trie-' + blockHashStr);
 
-    trie.iterateSecureTrie(stateRoot, (key, value, node, depth) => {
+    trie.iterateSecureTrie(stateRoot, (key, value) => {
 
         // we have value when the leaf has bean reached
         if (value) {
@@ -70,10 +70,9 @@ function dumpTrie(blockNumber, blockHashStr, blockDepth) {
             stream.write(newLine.join(',')+ '\n');
         }
 
-        if (!node) {
-            stream.end()
-            console.timeEnd('Storage-trie-' + blockNumber);
-        }
+    }, ()=> {
+        stream.end()
+        console.timeEnd('Storage-trie-' + blockHashStr);
     });
 }
 
