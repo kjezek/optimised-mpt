@@ -64,9 +64,11 @@ function dumpTrie(blockNumber, blockHashStr, blockDepth) {
 
         // we have value when the leaf has bean reached
         if (value) {
+            const keyStr = utils.bufferToHex(key)
+            const valueStr = utils.bufferToHex(value)
             const newLine = [];
-            newLine.push(key);
-            newLine.push(value);
+            newLine.push(keyStr);
+            newLine.push(valueStr);
             stream.write(newLine.join(',')+ '\n');
         }
 
