@@ -101,17 +101,14 @@ exports.tick = function(file) {
     }
 }
 
-// this must be set somehow not to overfill the memory
-const MAX_MEMORY_ELEMENTS = 10000
-
-exports.insert = function (inputFile, speedFile, trieFactory) {
+exports.insertAll = function (inputFile, speedFile, batchSize, trieFactory) {
 
     let trie = trieFactory();
     let count = 0;
     const dumpTrieCB = (key, value) => {
 
         // create a new tree not to bloat memory
-        if (count++ % MAX_MEMORY_ELEMENTS === 0) {
+        if (count++ % batchSize === 0) {
             trie = trieFactory();
         }
 
