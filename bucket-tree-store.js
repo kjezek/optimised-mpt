@@ -13,7 +13,6 @@ const dbPath = args[0];
 const file = args[1];
 
 const MAX_MEMORY_ELEMENTS = 10000
-const M = 1000000
 
 main = function (trieFactory) {
 
@@ -27,15 +26,7 @@ main = function (trieFactory) {
             trie = trieFactory();
         }
 
-        // create some statistics
-        if (count % M === 0) {
-            const end = Date.now();
-            const speed = M / ((end - start) / 1000)
-            start = end;
-            const mCount = count / M
-            console.log( (mCount) + "M elements inserted. Speed: " + speed + " items/s");
-        }
-
+        tries.tick(); // tick one more element done
         trie.put(key, value)
     }
     tries.readInputTries(file, dumpTrieCB)

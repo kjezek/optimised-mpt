@@ -80,3 +80,19 @@ exports.readInputTries = function(file, cb) {
         console.timeEnd('trie-dump-read-' + file);
     });
 }
+
+let count = 0;
+let start = Date.now()
+const M = 1000000
+exports.tick = function() {
+
+    // create some statistics
+    if (++count % M === 0) {
+        const end = Date.now();
+        const speed = M / ((end - start) / 1000)
+        start = end;
+        const mCount = count / M
+        console.log( (mCount) + "M elements inserted. Speed: " + speed + " items/s");
+    }
+
+}
