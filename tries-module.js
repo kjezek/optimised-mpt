@@ -12,10 +12,10 @@ let blockchainOpts;
 // Open the DB
 exports.init = function(DB_PATH, onOpen) {
     const dbOptions = {  };
-    db = level(DB_PATH, dbOptions, function(err) {
+    db = level(DB_PATH, dbOptions, function(err, db1) {
         if (err) console.log("DB Access Err: " + err);
-        blockchainOpts = { db: db, hardfork:  "byzantium", validate : false }
-        onOpen();
+        blockchainOpts = { db: db1, hardfork:  "byzantium", validate : false }
+        onOpen(db1);
     });
 };
 
