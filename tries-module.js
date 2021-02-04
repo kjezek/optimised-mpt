@@ -3,6 +3,8 @@ const utils = require('ethereumjs-util');
 const async = require("async");
 const level = require('level');
 const rlp = require('rlp');
+const fs = require("fs");
+const readline = require('readline');
 const SecTrie = require('merkle-patricia-tree').SecureTrie;
 const Trie = require('merkle-patricia-tree').BaseTrie;
 
@@ -49,3 +51,32 @@ exports.iterateTrie = function(root, cb1, onDone) {
     let trie = new Trie(db, root);
     streamOnTrie(trie, cb1, onDone);
 };
+
+
+/**
+ * Read input tries from a file-
+ * @param file
+ * @param cb callback
+ */
+exports.readInputTries = function(file, cb) {
+    const stream = fs.createReadStream(file);
+    const rl = readline.createInterface({
+        input: stream,
+        crlfDelay: Infinity
+    });
+
+
+    console.time('trie-dump-read-' + file);
+
+    rl.on('line', line => {
+        const items = line.split(",");
+        const key = utils.toBuffer(items[0]);
+        const value = utils.toBuffer(items[1]);
+
+        cb(key, value);
+    });
+
+    rl.on('close', () => {
+        console.timeEnd('trie-dump-read-' + file);
+    });
+}

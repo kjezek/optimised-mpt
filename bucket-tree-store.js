@@ -1,47 +1,45 @@
 const utils = require('ethereumjs-util');
 const fs = require("fs");
 const readline = require('readline');
-const trie = require('./tries-module');
+const tries = require('./tries-module');
 const Account = require('ethereumjs-account').default;
 const Transaction = require('ethereumjs-tx').Transaction;
 const async = require('async');
 const BucketTrie = require('./bucket-tree').BaseTrie;
 
 
-/**
- * Read input tries from a file-
- * @param file
- * @param cb callback
- */
-function readInputTries(file, cb) {
-    const stream = fs.createReadStream(file);
-    const rl = readline.createInterface({
-        input: stream,
-        crlfDelay: Infinity
-    });
-
-    rl.on('line', line => {
-        const items = line.split(",");
-        const key = utils.toBuffer(items[0]);
-        const value = utils.toBuffer(items[1]);
-
-        cb(key, value);
-    });
-
-    // rl.on('close', () => onLine(null, null));
-}
-
 const args = process.argv.slice(2);
 const dbPath = args[0];
 const file = args[1];
 
+const MAX_MEMORY_ELEMENTS = 10000
+const M = 1000000
 
-main = function (db) {
+main = function (trieFactory) {
 
-    const trie = new BucketTrie(db);
-    const dumpTrieCB = (key, value) => trie.put(key, value)
-    readInputTries(file, dumpTrieCB)
+    let trie = trieFactory();
+    let count = 0;
+    let start = Date.now()
+    const dumpTrieCB = (key, value) => {
+
+        // create a new tree not to bloat memory
+        if (count++ % MAX_MEMORY_ELEMENTS === 0) {
+            trie = trieFactory();
+        }
+
+        // create some statistics
+        if (count % M === 0) {
+            const end = Date.now();
+            const speed = M / ((end - start) / 1000)
+            start = end;
+            const mCount = count / M
+            console.log( (mCount) + "M elements inserted. Speed: " + speed + " items/s");
+        }
+
+        trie.put(key, value)
+    }
+    tries.readInputTries(file, dumpTrieCB)
 }
 
 /** Init with DB path. */
-trie.init(dbPath, main);
+tries.init(dbPath, (db) => main(() => new BucketTrie(db)));
