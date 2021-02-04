@@ -84,7 +84,7 @@ exports.readInputTries = function(file, cb) {
 let count = 0;
 let start = Date.now()
 const M = 1000000
-exports.tick = function() {
+exports.tick = function(file) {
 
     // create some statistics
     if (++count % M === 0) {
@@ -93,6 +93,30 @@ exports.tick = function() {
         start = end;
         const mCount = count / M
         console.log( (mCount) + "M elements inserted. Speed: " + speed + " items/s");
-    }
 
+        const line = mCount + "," + speed + "\n"
+        fs.appendFile(file, line, err => {
+            if (err) console.error("Err: " + err)
+        });
+    }
+}
+
+// this must be set somehow not to overfill the memory
+const MAX_MEMORY_ELEMENTS = 10000
+
+exports.insert = function (inputFile, speedFile, trieFactory) {
+
+    let trie = trieFactory();
+    let count = 0;
+    const dumpTrieCB = (key, value) => {
+
+        // create a new tree not to bloat memory
+        if (count++ % MAX_MEMORY_ELEMENTS === 0) {
+            trie = trieFactory();
+        }
+
+        exports.tick(speedFile); // tick one more element done
+        trie.put(key, value)
+    }
+    exports.readInputTries(inputFile, dumpTrieCB)
 }
