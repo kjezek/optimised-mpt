@@ -103,6 +103,7 @@ exports.tick = function(file) {
 
 exports.insertAll = function (inputFile, speedFile, batchSize, trieFactory) {
 
+    fs.unlinkSync(speedFile)
     let trie = trieFactory();
     let count = 0;
     const dumpTrieCB = (key, value) => {
