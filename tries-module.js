@@ -58,7 +58,6 @@ exports.iterateTrie = function(root, cb1, onDone) {
  * @param file
  * @param cb callback
  */
-let _tmp_count = 0;
 exports.readInputTries = function(file, cb) {
     const stream = fs.createReadStream(file);
     const rl = readline.createInterface({
@@ -74,7 +73,7 @@ exports.readInputTries = function(file, cb) {
         const key = utils.toBuffer(items[0]);
         const value = utils.toBuffer(items[1]);
 
-        if (_tmp_count++ < 4000000) cb(key, value);
+        cb(key, value);
     });
 
     rl.on('close', () => {

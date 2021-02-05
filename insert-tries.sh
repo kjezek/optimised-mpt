@@ -8,23 +8,7 @@ INPUT_TRIE="csv_dump/trie_11000000_11_0xbb91d90516ce901742bfd5d73e4bf99b510776ef
 rm -rf $DB_PATH
 
 START_TIME=$(date +%s)
-#node --max-old-space-size=$HEAP_SIZE bucket-tree-store.js $DB_PATH $BATCH_SIZE $INPUT_TRIE
-
-rm -rf $DB_PATH
-node --max-old-space-size=$HEAP_SIZE bucket-tree-store.js $DB_PATH 1 $INPUT_TRIE
-rm -rf $DB_PATH
-node --max-old-space-size=$HEAP_SIZE bucket-tree-store.js $DB_PATH 10 $INPUT_TRIE
-rm -rf $DB_PATH
-node --max-old-space-size=$HEAP_SIZE bucket-tree-store.js $DB_PATH 100 $INPUT_TRIE
-rm -rf $DB_PATH
-node --max-old-space-size=$HEAP_SIZE bucket-tree-store.js $DB_PATH 1000 $INPUT_TRIE
-rm -rf $DB_PATH
-node --max-old-space-size=$HEAP_SIZE bucket-tree-store.js $DB_PATH 10000 $INPUT_TRIE
-rm -rf $DB_PATH
-node --max-old-space-size=$HEAP_SIZE bucket-tree-store.js $DB_PATH 100000 $INPUT_TRIE
-rm -rf $DB_PATH
-node --max-old-space-size=$HEAP_SIZE bucket-tree-store.js $DB_PATH 100000 $INPUT_TRIE
-
+node --max-old-space-size=$HEAP_SIZE bucket-tree-store.js $DB_PATH $BATCH_SIZE $INPUT_TRIE
 END_TIME=$(date +%s)
 
 echo "Total time $((END_TIME - START_TIME))s"
