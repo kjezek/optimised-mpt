@@ -58,6 +58,7 @@ exports.iterateTrie = function(root, cb1, onDone) {
  * @param file
  * @param cb callback
  */
+let _tmp_count = 0;
 exports.readInputTries = function(file, cb) {
     const stream = fs.createReadStream(file);
     const rl = readline.createInterface({
@@ -73,7 +74,7 @@ exports.readInputTries = function(file, cb) {
         const key = utils.toBuffer(items[0]);
         const value = utils.toBuffer(items[1]);
 
-        cb(key, value);
+        if (_tmp_count++ < 4000000) cb(key, value);
     });
 
     rl.on('close', () => {
@@ -103,7 +104,7 @@ exports.tick = function(file) {
 
 exports.insertAll = function (inputFile, speedFile, batchSize, trieFactory) {
 
-    fs.unlinkSync(speedFile)
+    // fs.unlinkSync(speedFile)
     let trie = trieFactory();
     let count = 0;
     const dumpTrieCB = (key, value) => {
