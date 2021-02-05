@@ -112,8 +112,10 @@ exports.insertAll = function (inputFile, speedFile, batchSize, trieFactory) {
             trie = trieFactory();
         }
 
-        exports.tick(speedFile); // tick one more element done
-        trie.put(key, value)
+        trie.put(key, value).then(err => {
+            if (err) console.error("Err: " + err)
+            exports.tick(speedFile); // tick one more element done
+        })
     }
     exports.readInputTries(inputFile, dumpTrieCB)
 }
