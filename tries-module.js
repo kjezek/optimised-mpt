@@ -110,7 +110,9 @@ exports.insertAll = function (inputFile, speedFile, batchSize, trieFactory) {
 
         // create a new tree not to bloat memory
         if (count++ % batchSize === 0) {
+            const root = trie.root
             trie = trieFactory();
+            trie.root = root;
         }
 
         trie.put(key, value).then(err => {
