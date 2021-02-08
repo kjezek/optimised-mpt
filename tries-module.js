@@ -128,7 +128,7 @@ exports.insertAll = function (inputFile, speedFile, batchSize, trieFactory) {
         trie.put(key, value).then(err => {
             if (err) console.error("Err: " + err)
             exports.tick(speedFile); // tick one more element done
-            console.log("Current root " + utils.bufferToHex(trie.root))
+            console.log(utils.bufferToHex(key) + "->" + utils.bufferToHex(value) + " current root " + utils.bufferToHex(trie.root))
             onDone(err, trie.root)   // send the last root
         })
     }
