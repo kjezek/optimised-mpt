@@ -71,7 +71,7 @@ exports.readInputTries = function(file, cb) {
     // queue all the processing of each file line
     const q = async.queue(function(task, callback) {
         cb(task.key, task.value, callback);
-    }, 10000);
+    }, 1);
 
     rl.on('line', line => {
         const items = line.split(",");
@@ -128,7 +128,7 @@ exports.insertAll = function (inputFile, speedFile, batchSize, trieFactory) {
         trie.put(key, value).then(err => {
             if (err) console.error("Err: " + err)
             exports.tick(speedFile); // tick one more element done
-            console.log("current root " + utils.bufferToHex(trie.root) + ": " + utils.bufferToHex(key) + "->" + utils.bufferToHex(value))
+            // console.log("current root " + utils.bufferToHex(trie.root) + ": " + utils.bufferToHex(key) + "->" + utils.bufferToHex(value))
             onDone(err, trie.root)   // send the last root
         })
     }
