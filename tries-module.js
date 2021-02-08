@@ -58,7 +58,7 @@ exports.iterateTrie = function(root, cb1, onDone) {
  * @param file
  * @param cb callback
  */
-exports.readInputTries = function(file, cb) {
+exports.readInputTries = function(file, batchSize, cb) {
     const stream = fs.createReadStream(file);
     const rl = readline.createInterface({
         input: stream,
@@ -71,7 +71,7 @@ exports.readInputTries = function(file, cb) {
     // queue all the processing of each file line
     const q = async.queue(function(task, callback) {
         cb(task.key, task.value, callback);
-    }, 1);
+    }, batchSize);
 
     rl.on('line', line => {
         const items = line.split(",");
@@ -119,11 +119,12 @@ exports.insertAll = function (inputFile, speedFile, batchSize, trieFactory) {
     const dumpTrieCB = (key, value, onDone) => {
 
         // create a new tree not to bloat memory
-        if (count++ % batchSize === 0) {
-            const root = trie.root
-            trie = trieFactory();
-            trie.root = root;
-        }
+        // if (count++ % batchSize === 0) {
+        //     const root = trie.root
+        //     trie = trieFactory();
+        //     trie.root = root;
+        //     // trie = trie.copy()
+        // }
 
         trie.put(key, value).then(err => {
             if (err) console.error("Err: " + err)
@@ -132,5 +133,5 @@ exports.insertAll = function (inputFile, speedFile, batchSize, trieFactory) {
             onDone(err, trie.root)   // send the last root
         })
     }
-    exports.readInputTries(inputFile, dumpTrieCB)
+    exports.readInputTries(inputFile, batchSize, dumpTrieCB)
 }
