@@ -65,19 +65,29 @@ exports.readInputTries = function(file, cb) {
         crlfDelay: Infinity
     });
 
-
     console.time('trie-dump-read-' + file);
+
+    let lastRoot
+    // queue all the processing of each file line
+    const q = async.queue(function(task, callback) {
+        cb(task.key, task.value, callback);
+    }, 10000);
 
     rl.on('line', line => {
         const items = line.split(",");
         const key = utils.toBuffer(items[0]);
         const value = utils.toBuffer(items[1]);
 
-        cb(key, value);
+        q.push({key: key, value: value}, (err, hashRoot) => {
+            lastRoot = hashRoot
+        })
     });
 
     rl.on('close', () => {
-        console.timeEnd('trie-dump-read-' + file);
+       console.timeEnd('trie-dump-read-' + file);
+        q.drain = () => {
+            console.log("Last root: " + utils.bufferToHex(lastRoot))
+        }
     });
 }
 
@@ -106,7 +116,7 @@ exports.insertAll = function (inputFile, speedFile, batchSize, trieFactory) {
     // fs.unlinkSync(speedFile)
     let trie = trieFactory();
     let count = 0;
-    const dumpTrieCB = (key, value) => {
+    const dumpTrieCB = (key, value, onDone) => {
 
         // create a new tree not to bloat memory
         if (count++ % batchSize === 0) {
@@ -118,6 +128,7 @@ exports.insertAll = function (inputFile, speedFile, batchSize, trieFactory) {
         trie.put(key, value).then(err => {
             if (err) console.error("Err: " + err)
             exports.tick(speedFile); // tick one more element done
+            onDone(err, trie.root)   // send the last root
         })
     }
     exports.readInputTries(inputFile, dumpTrieCB)
