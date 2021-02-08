@@ -94,7 +94,7 @@ exports.readInputTries = function(file, batchSize, cb) {
 let count = 0;
 let start = Date.now()
 const M = 1000000
-exports.tick = function(file) {
+exports.tick = function(file, batchSize) {
 
     // create some statistics
     if (++count % M === 0) {
@@ -104,7 +104,7 @@ exports.tick = function(file) {
         const mCount = count / M
         console.log( (mCount) + "M elements inserted. Speed: " + speed + " items/s");
 
-        const line = mCount + "," + speed + "\n"
+        const line = batchSize + "," + mCount + "," + speed + "\n"
         fs.appendFile(file, line, err => {
             if (err) console.error("Err: " + err)
         });
@@ -128,7 +128,7 @@ exports.insertAll = function (inputFile, speedFile, batchSize, trieFactory) {
 
         trie.put(key, value).then(err => {
             if (err) console.error("Err: " + err)
-            exports.tick(speedFile); // tick one more element done
+            exports.tick(speedFile, batchSize); // tick one more element done
             // console.log("current root " + utils.bufferToHex(trie.root) + ": " + utils.bufferToHex(key) + "->" + utils.bufferToHex(value))
             onDone(err, trie.root)   // send the last root
         })
