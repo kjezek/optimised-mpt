@@ -158,7 +158,7 @@ exports.dumpTrie = function(outputFile, trie) {
     const blockHashStr = utils.bufferToHex(trie.root);
     console.time('Storage-trie-' + blockHashStr);
 
-    exports.streamOnTrie(trie, (key, value) => {
+    exports.streamOnTrie(trie, (key, value, node, depth) => {
 
         // we have value when the leaf has bean reached
         if (value) {
@@ -167,6 +167,7 @@ exports.dumpTrie = function(outputFile, trie) {
             const newLine = [];
             newLine.push(keyStr);
             newLine.push(valueStr);
+            // newLine.push(depth);
             stream.write(newLine.join(',')+ '\n');
         }
 

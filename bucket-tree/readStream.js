@@ -14,10 +14,13 @@ class TrieReadStream extends Readable {
             return;
         }
         this._started = true;
-        await this.trie._findValueNodes(async (nodeRef, node, key, walkController) => {
+        await this.trie._findValueNodes(async (nodeRef, node, key, depth, walkController) => {
+            // KJ: RESEARCH - added node, depth in the datastructure
             this.push({
                 key: nibbles_1.nibblesToBuffer(key),
                 value: node.value,
+                node: node,
+                depth: depth
             });
             await walkController.next();
         });

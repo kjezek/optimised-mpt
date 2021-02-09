@@ -238,20 +238,22 @@ class Trie {
      * @private
      */
     async _findValueNodes(onFound) {
-        await this._walkTrie(this.root, async (nodeRef, node, key, walkController) => {
+        await this._walkTrie(this.root, async (nodeRef, node, key, depth, walkController) => {  // KJ: RESEARCH - added depth
             let fullKey = key;
             if (node instanceof trieNode_1.LeafNode) {
                 fullKey = key.concat(node.key);
                 // found leaf node!
-                onFound(nodeRef, node, fullKey, walkController);
+                onFound(nodeRef, node, fullKey, depth, walkController); // KJ: RESEARCH - added depth
             }
             else if (node instanceof trieNode_1.BranchNode && node.value) {
                 // found branch with value
-                onFound(nodeRef, node, fullKey, walkController);
+                onFound(nodeRef, node, fullKey, depth, walkController);  // KJ: RESEARCH - added depth
             }
             else {
                 // keep looking for value nodes
-                await walkController.next();
+                // KJ: RESEARCH - changed to propagate every node - not only the values
+                // await walkController.next();
+                onFound(nodeRef, node, fullKey, depth, walkController);  // KJ: RESEARCH - added depth
             }
         });
     }
@@ -383,7 +385,7 @@ class Trie {
             // low enough to utilize the prioritisation of node lookup.
             const maxPoolSize = 500;
             const taskExecutor = new prioritizedTaskExecutor_1.PrioritizedTaskExecutor(maxPoolSize);
-            const processNode = async (nodeRef, node, key = []) => {
+            const processNode = async (nodeRef, node, key = [], depth) => {     // KJ: RESEARCH -- added depth
                 const walkController = {
                     next: async () => {
                         if (node instanceof trieNode_1.LeafNode) {
@@ -412,7 +414,7 @@ class Trie {
                                 const childNode = await self._lookupNode(childRef);
                                 taskCallback();
                                 if (childNode) {
-                                    processNode(childRef, childNode, childKey);
+                                    processNode(childRef, childNode, childKey, depth+1);    // KJ: RESEARCH -- added depth
                                 }
                             });
                         }
@@ -432,7 +434,7 @@ class Trie {
                             const childNode = await self._lookupNode(childRef);
                             taskCallback();
                             if (childNode) {
-                                await processNode(childRef, childNode, childKey);
+                                await processNode(childRef, childNode, childKey, depth+1);  // KJ: RESEARCH -- added depth
                             }
                             else {
                                 // could not find child node
@@ -442,7 +444,7 @@ class Trie {
                     },
                 };
                 if (node) {
-                    onNode(nodeRef, node, key, walkController);
+                    onNode(nodeRef, node, key, depth, walkController);  // KJ: RESEARCH -- added depth
                 }
                 else {
                     resolve();
@@ -450,7 +452,7 @@ class Trie {
             };
             const node = await this._lookupNode(root);
             if (node) {
-                await processNode(root, node, []);
+                await processNode(root, node, [], 0);       // KJ: RESEARCH -- added depth - init to zero
             }
             else {
                 resolve();
