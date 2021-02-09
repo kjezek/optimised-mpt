@@ -16,7 +16,7 @@ const BLOCKS_IN_PARALLEL=100;
  * @param cb callback
  * @param onLine invoked when file is processed
  */
-function readInputTries(file, cb) {
+function readInputTries(file, db, cb) {
     const stream = fs.createReadStream(file);
     const rl = readline.createInterface({
         input: stream,
@@ -29,7 +29,7 @@ function readInputTries(file, cb) {
         const blockHashStr = items[1];
         const blockDepth = items[2];
 
-        cb(blockNumber, blockHashStr, blockDepth);
+        cb(db, blockNumber, blockHashStr, blockDepth);
     });
 
     // rl.on('close', () => onLine(null, null));
@@ -39,7 +39,6 @@ function readInputCSVFiles(path, cb) {
     fs.readdir(path, (err, files) => {
 
         if (err) { console.error("Could not list the directory.", err); return; }
-
         files.forEach((file, index) => {
             if (file.endsWith(".csv"))
                 cb(path + file);
@@ -49,18 +48,19 @@ function readInputCSVFiles(path, cb) {
 
 /**
  * Dump a trie for the hash in a CSV file
+ * @param db database
  * @param blockNumber
  * @param blockHashStr
  * @param blockDepth trie height
  */
-function dumpTrie(blockNumber, blockHashStr, blockDepth) {
+function dumpTrie(db, blockNumber, blockHashStr, blockDepth) {
     const FILE_NAME = CSV_PATH_RES + "/trie_" + blockNumber + "_" + blockDepth + "_" + blockHashStr + ".csv";
     const stream = fs.createWriteStream(FILE_NAME)
-    const stateRoot = utils.toBuffer(blockHashStr);
 
     console.time('Storage-trie-' + blockHashStr);
 
-    trie.iterateSecureTrie(stateRoot, (key, value) => {
+    const t = trie.baseTrie(db, blockHashStr)
+    trie.streamOnTrie(t,(key, value) => {
 
         // we have value when the leaf has bean reached
         if (value) {
@@ -90,8 +90,8 @@ const dbPath = args[0];
 const CSV_FILE_INPUT = "csv_input/";
 const CSV_PATH_RES = "csv_dump/";
 
-main = function () {
-    const dumpTrieCB = (file) => readInputTries(file, dumpTrie)
+main = function (db) {
+    const dumpTrieCB = (file) => readInputTries(file, db, dumpTrie)
     readInputCSVFiles(CSV_FILE_INPUT, dumpTrieCB)
     // readInputTries(inputTries, dumpTrie)
 }

@@ -6,15 +6,13 @@ const rlp = require('rlp');
 const fs = require("fs");
 const readline = require('readline');
 const SecTrie = require('merkle-patricia-tree').SecureTrie;
-const Trie = require('merkle-patricia-tree').BaseTrie;
-
-let db;
-let blockchainOpts;
+const BaseTrie = require('merkle-patricia-tree').BaseTrie;
+const BucketTrie = require('./bucket-tree').BaseTrie;
 
 // Open the DB
 exports.init = function(DB_PATH, onOpen) {
     const dbOptions = {  };
-    db = level(DB_PATH, dbOptions, function(err, db1) {
+    level(DB_PATH, dbOptions, function(err, db1) {
         if (err) console.log("DB Access Err: " + err);
         blockchainOpts = { db: db1, hardfork:  "byzantium", validate : false }
         onOpen(db1);
@@ -22,7 +20,7 @@ exports.init = function(DB_PATH, onOpen) {
 };
 
 
-function streamOnTrie(trie, cb1, onDone) {
+exports.streamOnTrie = function (trie, cb1, onDone) {
     let stream = trie.createReadStream()
         .on('data', function (data) {
             cb1(data.key, data.value, data.node, data.depth);
@@ -33,24 +31,27 @@ function streamOnTrie(trie, cb1, onDone) {
 }
 
 /**
- * Iterate over all accounts of a block
- * @param root trie root
- * @param cb1 callback
- */
-exports.iterateSecureTrie = function(root, cb1, onDone) {
-    let trie = new SecTrie(db, root);
-    streamOnTrie(trie, cb1, onDone);
-};
-
-/**
  * Iterate over all transactions of a block
  * @param root trie root
  * @param cb1 callback
+ * @param onDone on done callback
  */
 exports.iterateTrie = function(root, cb1, onDone) {
     let trie = new Trie(db, root);
     streamOnTrie(trie, cb1, onDone);
 };
+
+/**
+ * Iterate bucket tree
+ * @param root
+ * @param cb1
+ * @param onDone
+ * @param onDone on done callback
+ */
+exports.iterateBucketTree = function (root, cb1, onDone) {
+    let trie = new BucketTrie(db, root)
+    streamOnTrie(trie, cb1, onDone)
+}
 
 
 /**
@@ -134,4 +135,44 @@ exports.insertAll = function (inputFile, speedFile, batchSize, trieFactory) {
         })
     }
     exports.readInputTries(inputFile, batchSize, dumpTrieCB)
+}
+
+exports.baseTrie = (db, hashRoot) => {
+    const stateRoot = utils.toBuffer(hashRoot);
+    return new BaseTrie(db, stateRoot)
+}
+
+exports.bucketTrie = (db, hashRoot) => {
+    const stateRoot = utils.toBuffer(hashRoot);
+    return new BucketTrie(db, stateRoot)
+}
+
+/**
+ * Dump a trie for the hash in a CSV file
+ * @param outputFile dump file name
+ * @param trie trie to iterate
+ */
+exports.dumpTrie = function(outputFile, trie) {
+    const stream = fs.createWriteStream(outputFile)
+
+    const blockHashStr = utils.bufferToHex(trie.root);
+    console.time('Storage-trie-' + blockHashStr);
+
+    exports.streamOnTrie(trie, (key, value) => {
+
+        // we have value when the leaf has bean reached
+        if (value) {
+            const keyStr = utils.bufferToHex(key)
+            const valueStr = utils.bufferToHex(value)
+            const newLine = [];
+            newLine.push(keyStr);
+            newLine.push(valueStr);
+            stream.write(newLine.join(',')+ '\n');
+        }
+
+    }, ()=> {
+        stream.end()
+        console.timeEnd('Storage-trie-' + blockHashStr);
+        console.log("Stored into file: " + outputFile)
+    });
 }
