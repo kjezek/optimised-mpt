@@ -9,7 +9,7 @@ INPUT_TRIE="csv_dump/trie_11000000_11_0xbb91d90516ce901742bfd5d73e4bf99b510776ef
 for i in 1 10 100 1000 10000 100000 1000000 10000000; do
   rm -rf $DB_PATH_TRIE_ORIGINAL
   START_TIME=$(date +%s)
-  node --max-old-space-size=$HEAP_SIZE original-trie-store.js $DB_PATH_BUCKET_TRIE $PARALLELISM $i $INPUT_TRIE
+  node --max-old-space-size=$HEAP_SIZE original-trie-insert.js $DB_PATH_BUCKET_TRIE $PARALLELISM $i $INPUT_TRIE
   END_TIME=$(date +%s)
   echo "Total time $((END_TIME - START_TIME))s"
   echo "Database size: $(du -sh $DB_PATH_TRIE_ORIGINAL)"
@@ -18,7 +18,7 @@ done
 for i in 1 10 100 1000 10000 100000 1000000 10000000; do
   rm -rf $DB_PATH_TRIE_ORIGINAL
   START_TIME=$(date +%s)
-  node --max-old-space-size=$HEAP_SIZE bucket-trie-store.js $DB_PATH_BUCKET_TRIE $PARALLELISM $i $INPUT_TRIE
+  node --max-old-space-size=$HEAP_SIZE bucket-trie-insert.js $DB_PATH_BUCKET_TRIE $PARALLELISM $i $INPUT_TRIE
   END_TIME=$(date +%s)
   echo "Total time $((END_TIME - START_TIME))s"
   echo "Database size: $(du -sh $DB_PATH_TRIE_ORIGINAL)"

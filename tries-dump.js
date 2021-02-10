@@ -79,8 +79,10 @@ function dumpTrie(db, blockNumber, blockHashStr, blockDepth) {
 }
 
 /**
- * Main program - read blocks from pre-generated CSV files and
- * generate statistics about the tries.
+ * Main program
+ * Iterate all CSV files from the directory csv_input/ and dump all tries according to this input.
+ * The input files contain hash roots - these tries are fetch from the database and dumped
+ * as key-value pairs into CSV files in the directory csv_dump/
  */
 const args = process.argv.slice(2);
 const dbPath = args[0];

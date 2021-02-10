@@ -10,8 +10,8 @@ const Trie = require('merkle-patricia-tree').BaseTrie;
 
 
 /**
- * Main program - read blocks from pre-generated CSV files and
- * generate statistics about the tries.
+ * Main program
+ * Fetch from the input database a trie with the given hash and store in in a CSV file as key-value pairs
  */
 const args = process.argv.slice(2);
 const dbPath = args[0];
@@ -20,7 +20,7 @@ const hash = args[1];
 // const outputTrie = args[1];
 
 const CSV_FILE_INPUT = "csv_input/";
-const CSV_PATH_RES = "csv_dump/";
+const CSV_PATH_RES = "csv_dump_single/";
 
 /** Init with DB path. */
 const fileName = CSV_PATH_RES + "/trie_" + hash + ".csv"
