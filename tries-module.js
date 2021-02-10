@@ -143,7 +143,7 @@ exports.insertAll = function (inputFile, speedFile, parallelism, batchSize, trie
     // fs.unlinkSync(speedFile)
     let trie = trieFactory();
     let count = 0;
-    const speed = new exports.Speed(inputFile, parallelism, batchSize)
+    const speed = new exports.Speed(speedFile, parallelism, batchSize)
     const dumpTrieCB = (key, value, onDone) => {
 
         // create a new tree not to bloat memory
