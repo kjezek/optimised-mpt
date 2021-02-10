@@ -20,11 +20,12 @@ const assert = require('assert');
  * @prop {Buffer} EMPTY_TRIE_ROOT - The root for an empty trie
  */
 class Trie {
-    constructor(db, root) {
+    constructor(db, maxHeight, root) {      // KJ: RESEARCH - added maxHeight
         this.EMPTY_TRIE_ROOT = ethereumjs_util_1.KECCAK256_RLP;
         this.lock = new semaphore_async_await_1.default(1);
         this.db = db ? new db_1.DB(db) : new db_1.DB();
         this._root = this.EMPTY_TRIE_ROOT;
+        this.maxHeight = maxHeight
         if (root) {
             this.setRoot(root);
         }
@@ -133,9 +134,9 @@ class Trie {
         }
         else {
             // First try to find the given key or its nearest node
-            const { remaining, stack } = await this.findPath(key);
+            const { remaining, stack, depth } = await this.findPath(key);        //  KJ: RESEARCH - added depth
             // then update
-            await this._updateNode(key, value, remaining, stack);
+            await this._updateNode(key, value, remaining, stack, depth);        //  KJ: RESEARCH - added depth
         }
         this.lock.signal();
     }
@@ -144,6 +145,7 @@ class Trie {
      * @param {Buffer} key
      */
     async del(key) {
+        // KJ: RESEARCH - TODO - delete operation not implemented at the moment
         await this.lock.wait();
         const { node, stack } = await this.findPath(key);
         if (node) {
@@ -192,14 +194,14 @@ class Trie {
                 if (node instanceof trieNode_1.BranchNode) {
                     if (keyRemainder.length === 0) {
                         // we exhausted the key without finding a node
-                        resolve({ node, remaining: [], stack });
+                        resolve({ node, remaining: [], stack, depth });     //  KJ: RESEARCH - added depth
                     }
                     else {
                         const branchIndex = keyRemainder[0];
                         const branchNode = node.getBranch(branchIndex);
                         if (!branchNode) {
                             // there are no more nodes to find and we didn't find the key
-                            resolve({ node: null, remaining: keyRemainder, stack });
+                            resolve({ node: null, remaining: keyRemainder, stack, depth });     //  KJ: RESEARCH - added depth
                         }
                         else {
                             // node found, continuing search
@@ -210,18 +212,18 @@ class Trie {
                 else if (node instanceof trieNode_1.LeafNode) {
                     if (nibbles_1.doKeysMatch(keyRemainder, node.key)) {
                         // keys match, return node with empty key
-                        resolve({ node, remaining: [], stack });
+                        resolve({ node, remaining: [], stack, depth });     //  KJ: RESEARCH - added depth
                     }
                     else {
                         // reached leaf but keys dont match
-                        resolve({ node: null, remaining: keyRemainder, stack });
+                        resolve({ node: null, remaining: keyRemainder, stack, depth });     //  KJ: RESEARCH - added depth
                     }
                 }
                 else if (node instanceof trieNode_1.ExtensionNode) {
                     const matchingLen = nibbles_1.matchingNibbleLength(keyRemainder, node.key);
                     if (matchingLen !== node.key.length) {
                         // keys don't match, fail
-                        resolve({ node: null, remaining: keyRemainder, stack });
+                        resolve({ node: null, remaining: keyRemainder, stack, depth });     //  KJ: RESEARCH - added depth
                     }
                     else {
                         // keys match, continue search
@@ -230,7 +232,7 @@ class Trie {
                 }
             });
             // Resolve if _walkTrie finishes without finding any nodes
-            resolve({ node: null, remaining: [], stack });
+            resolve({ node: null, remaining: [], stack, depth: 0 });    //  KJ: RESEARCH - added depth
         });
     }
     /**
@@ -279,11 +281,17 @@ class Trie {
      * @param {Nibbles} keyRemainder
      * @param {TrieNode[]} stack
      */
-    async _updateNode(k, value, keyRemainder, stack) {
+    async _updateNode(k, value, keyRemainder, stack, depth) {       //  KJ: RESEARCH - added depth
         const toSave = [];
         const lastNode = stack.pop();
         if (!lastNode) {
             throw new Error('Stack underflow');
+        }
+        // KJ: RESEARCH - added special handling when the depth is reached - store the value in the bucket, not the trie
+        if (depth === this.maxHeight) {
+            console.log("MAX DEPTH IS HERE")
+            // TODO - toSave will contain key-value pair
+            // call _saveStack
         }
         // add the new nodes
         let key = nibbles_1.bufferToNibbles(k);
@@ -641,7 +649,7 @@ class Trie {
      */
     copy() {
         const db = this.db.copy();
-        return new Trie(db._leveldb, this.root);
+        return new Trie(db._leveldb, this.maxHeight, this.root);    // KJ: RESEARCH -- added max height
     }
     /**
      * The given hash of operations (key additions or deletions) are executed on the DB

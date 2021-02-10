@@ -26,7 +26,7 @@ export declare class Trie {
     db: DB;
     protected lock: Semaphore;
     private _root;
-    constructor(db?: LevelUp | null, root?: Buffer);
+    constructor(db?: LevelUp | null, maxHeight?, root?: Buffer);        // KJ: RESEARCH - added maxHeight
     /**
      * Saves the nodes from a proof into the trie. If no trie is provided a new one wil be instantiated.
      * @param {Proof} proof

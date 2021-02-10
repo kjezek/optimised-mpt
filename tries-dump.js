@@ -83,6 +83,9 @@ function dumpTrie(db, blockNumber, blockHashStr, blockDepth) {
  * Iterate all CSV files from the directory csv_input/ and dump all tries according to this input.
  * The input files contain hash roots - these tries are fetch from the database and dumped
  * as key-value pairs into CSV files in the directory csv_dump/
+ *
+ * All trie roots from another project are in csv_storage/, they were manually copied to csv_input
+ * to manipulate which tries to dump
  */
 const args = process.argv.slice(2);
 const dbPath = args[0];

@@ -11,8 +11,8 @@ const Trie = require('merkle-patricia-tree').BaseTrie;
 
 const args = process.argv.slice(2);
 const dbPath = args[0];
-const parallelism = args[1]
-const batchSize = args[2];
+const parallelism = parseInt(args[1])
+const batchSize = parseInt(args[2])
 const file = args[3];
 
 /** Init with DB path. */
