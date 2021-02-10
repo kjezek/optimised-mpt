@@ -58,8 +58,9 @@ exports.iterateBucketTree = function (root, cb1, onDone) {
  * Read input tries from a file-
  * @param file
  * @param cb callback
+ * @param parallelism number of parallel threads to insert in a trie
  */
-exports.readInputTries = function(file, batchSize, cb) {
+exports.readInputTries = function(file, parallelism, cb) {
     const stream = fs.createReadStream(file);
     const rl = readline.createInterface({
         input: stream,
@@ -72,7 +73,7 @@ exports.readInputTries = function(file, batchSize, cb) {
     // queue all the processing of each file line
     const q = async.queue(function(task, callback) {
         cb(task.key, task.value, callback);
-    }, batchSize);
+    }, parallelism);
 
     rl.on('line', line => {
         const items = line.split(",");
@@ -92,49 +93,75 @@ exports.readInputTries = function(file, batchSize, cb) {
     });
 }
 
-let count = 0;
-let start = Date.now()
-const M = 1000000
-exports.tick = function(file, batchSize) {
+/**
+ * Helper class for performance metering
+ * @type {exports.Speed}
+ */
+exports.Speed = class {
 
-    // create some statistics
-    if (++count % M === 0) {
-        const end = Date.now();
-        const speed = M / ((end - start) / 1000)
-        start = end;
-        const mCount = count / M
-        console.log( (mCount) + "M elements inserted. Speed: " + speed + " items/s");
-
-        const line = batchSize + "," + mCount + "," + speed + "\n"
-        fs.appendFile(file, line, err => {
-            if (err) console.error("Err: " + err)
-        });
+    constructor(file, parallelism, batchSize) {
+        this.count = 0;
+        this.start = Date.now()
+        this.M = 1000000
+        this.file = file
+        this.batchSize = batchSize
+        this.parallelism = parallelism
     }
+
+    tick() {
+
+        // create some statistics
+        if (++this.count % this.M === 0) {
+            const end = Date.now();
+            const speed = this.M / ((end - this.start) / 1000)
+            this.start = end;
+            const mCount = this.count / this.M
+            console.log( (mCount) + "M elements inserted. Speed: " + speed + " items/s");
+
+            const line = this.parallelism + "," + this.batchSize + "," + mCount + "," + speed + "\n"
+            fs.appendFile(this.file, line, err => {
+                if (err) console.error("Err: " + err)
+            });
+        }
+    }
+
 }
 
-exports.insertAll = function (inputFile, speedFile, batchSize, trieFactory) {
+
+/**
+ * Insert all key-value pairs from the input file into the database
+ *
+ *
+ * @param inputFile the file with key-value pairs
+ * @param speedFile the file to write speed statistics into
+ * @param batchSize the number of elements to insert before a new tree is created
+ * @param parallelism number of threads to insert in - use only "1" when paired with batch size  // TODO - use only one at the moment
+ * @param trieFactory
+ */
+exports.insertAll = function (inputFile, speedFile, parallelism, batchSize, trieFactory) {
 
     // fs.unlinkSync(speedFile)
     let trie = trieFactory();
     let count = 0;
+    const speed = new Speed(inputFile, parallelism, batchSize)
     const dumpTrieCB = (key, value, onDone) => {
 
         // create a new tree not to bloat memory
-        // if (count++ % batchSize === 0) {
-        //     const root = trie.root
-        //     trie = trieFactory();
-        //     trie.root = root;
-        //     // trie = trie.copy()
-        // }
+        if (count++ % batchSize === 0) {
+            // const root = trie.root
+            // trie = trieFactory();
+            // trie.root = root;
+            trie = trie.copy()
+        }
 
         trie.put(key, value).then(err => {
             if (err) console.error("Err: " + err)
-            exports.tick(speedFile, batchSize); // tick one more element done
+            speed.tick(); // tick one more element done
             // console.log("current root " + utils.bufferToHex(trie.root) + ": " + utils.bufferToHex(key) + "->" + utils.bufferToHex(value))
             onDone(err, trie.root)   // send the last root
         })
     }
-    exports.readInputTries(inputFile, batchSize, dumpTrieCB)
+    exports.readInputTries(inputFile, parallelism, dumpTrieCB)
 }
 
 exports.baseTrie = (db, hashRoot) => {

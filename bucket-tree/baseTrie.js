@@ -186,7 +186,7 @@ class Trie {
             let stack = [];
             let targetKey = nibbles_1.bufferToNibbles(key);
             // walk trie and process nodes
-            await this._walkTrie(this.root, async (nodeRef, node, keyProgress, walkController) => {
+            await this._walkTrie(this.root, async (nodeRef, node, keyProgress, depth, walkController) => {     // KJ: RESEARCH - added depth
                 const keyRemainder = targetKey.slice(nibbles_1.matchingNibbleLength(keyProgress, targetKey));
                 stack.push(node);
                 if (node instanceof trieNode_1.BranchNode) {
@@ -262,7 +262,7 @@ class Trie {
      * (some nodes are stored raw inside other nodes)
      */
     async _findDbNodes(onFound) {
-        await this._walkTrie(this.root, async (nodeRef, node, key, walkController) => {
+        await this._walkTrie(this.root, async (nodeRef, node, key, depth, walkController) => {      // KJ: RESEARCH - added depth
             if (trieNode_1.isRawNode(nodeRef)) {
                 await walkController.next();
             }

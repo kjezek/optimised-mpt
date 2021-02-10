@@ -16,4 +16,4 @@ const batchSize = args[2];
 const file = args[3];
 
 /** Init with DB path. */
-tries.init(dbPath, (db) => tries.insertAll(file, "speed-bucket-trie.csv", parallelism, batchSize,() => new BucketTrie(db)));
+tries.init(dbPath, (db) => tries.insertAll(file, "speed-trie-original.csv", parallelism, batchSize,() => new Trie(db)));
