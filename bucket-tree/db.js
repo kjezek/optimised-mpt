@@ -2,6 +2,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DB = exports.ENCODING_OPTS = void 0;
 const level = require('level-mem');
+const utils = require('ethereumjs-util');
+const async = require("async");
+
 exports.ENCODING_OPTS = { keyEncoding: 'binary', valueEncoding: 'binary' };
 /**
  * DB is a thin wrapper around the underlying levelup db,
@@ -72,15 +75,23 @@ class DB {
     }
 
     // KJ: RESEARCH  - added prefix filter
-    // async prefixRange(keyPrefix) {
-    //     const end =
-    //     this._leveldb.createReadStream({
-    //         gte: keyPrefix
-    //         lte: end
-    //     }).on(‘data’, function(data) {
-    //         console.log(data.key)
-    //     })
-    // }
+    async prefixRange(keyPrefix, cb) {
+        const endStr = utils.bufferToHex(keyPrefix) + "FF"
+        const end = utils.toBuffer(endStr)
+        // console.log("In-memory trie for up-to prefix: " + endStr)
+        return new Promise((resolve) => {
+            // put all keys in this queue, and resolve this promise once all values are processed in the callback
+            const q = async.queue((task, onDone) =>
+                cb(task.key, task.value, onDone)
+            , 1000);
+            this._leveldb.createReadStream({
+                gte: keyPrefix,
+                lte: end
+            }).on('data', data => q.push({"key": new Buffer(data.key), "value": new Buffer(data.value)})
+            ).on('end', ()=> q.drain = resolve)
+        })
+    }
+    // KJ: RESEARCH - end
 }
 exports.DB = DB;
 //# sourceMappingURL=db.js.map

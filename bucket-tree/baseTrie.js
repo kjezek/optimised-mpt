@@ -9,6 +9,8 @@ const prioritizedTaskExecutor_1 = require("./prioritizedTaskExecutor");
 const nibbles_1 = require("./util/nibbles");
 const trieNode_1 = require("./trieNode");
 const assert = require('assert');
+const utils = require('ethereumjs-util');
+
 /**
  * Use `import { BaseTrie as Trie } from 'merkle-patricia-tree'` for the base interface.
  * In Ethereum applications stick with the Secure Trie Overlay `import { SecureTrie as Trie } from 'merkle-patricia-tree'`.
@@ -29,6 +31,9 @@ class Trie {
         if (root) {
             this.setRoot(root);
         }
+
+        // KJ: RESEARCH - in-memory tries for bucket
+        this.memoryTries = []
     }
     /**
      * Saves the nodes from a proof into the trie. If no trie is provided a new one wil be instantiated.
@@ -290,10 +295,26 @@ class Trie {
         // KJ: RESEARCH - added special handling when the depth is reached - store the value in the bucket, not the trie
         if (depth === this.maxHeight) {
             const keyNibbles = nibbles_1.bufferToNibbles(k);
-            const prefix = keyNibbles.slice(0, keyNibbles.length - keyRemainder.length);
-            const prefixBuffer = nibbles_1.nibblesToBuffer(prefix);
+            const prefixNibbles = keyNibbles.slice(0, keyNibbles.length - keyRemainder.length);
+            const prefixBuffer = nibbles_1.nibblesToBuffer(prefixNibbles);
+            const prefixStr = utils.bufferToHex(prefixBuffer)
 
-            // TODO - refresh the in memory trie
+            // Locate and pre-load the in memory trie
+            let memoryTrie = this.memoryTries[prefixStr]
+            if (memoryTrie === undefined) {
+                // when DB is not defined, in-memory db is used
+                memoryTrie = new Trie(null, 100000000000000)
+                this.memoryTries[prefixStr] = memoryTrie
+                // console.log("In-memory trie for new prefix: " + prefixStr)
+                // Recover in-memory trie from the database
+                await this.db.prefixRange(prefixBuffer,  (k1, v1, onDone) =>
+                    memoryTrie.put(k1, v1).then(onDone))
+            }
+            // Store in in-memory trie to get hash of this trie
+            await memoryTrie.put(k, value)
+
+            const keyStr = utils.bufferToHex(k);
+            console.log("Prefix: " + prefixStr + " Key: " + keyStr)
 
             // save the key->value directly
             toSave.push({
