@@ -70,6 +70,17 @@ class DB {
     copy() {
         return new DB(this._leveldb);
     }
+
+    // KJ: RESEARCH  - added prefix filter
+    // async prefixRange(keyPrefix) {
+    //     const end =
+    //     this._leveldb.createReadStream({
+    //         gte: keyPrefix
+    //         lte: end
+    //     }).on(‘data’, function(data) {
+    //         console.log(data.key)
+    //     })
+    // }
 }
 exports.DB = DB;
 //# sourceMappingURL=db.js.map

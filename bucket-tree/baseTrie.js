@@ -289,10 +289,26 @@ class Trie {
         }
         // KJ: RESEARCH - added special handling when the depth is reached - store the value in the bucket, not the trie
         if (depth === this.maxHeight) {
-            console.log("MAX DEPTH IS HERE")
-            // TODO - toSave will contain key-value pair
-            // call _saveStack
+            const keyNibbles = nibbles_1.bufferToNibbles(k);
+            const prefix = keyNibbles.slice(0, keyNibbles.length - keyRemainder.length);
+            const prefixBuffer = nibbles_1.nibblesToBuffer(prefix);
+
+            // TODO - refresh the in memory trie
+
+            // save the key->value directly
+            toSave.push({
+                type: 'put',
+                key: k,
+                value: value,
+            });
+
+            // TODO - we must add an extra node to stack to correctly recompute the stack - a leaf node?
+            const key = nibbles_1.bufferToNibbles(k);
+            await this._saveStack(key, stack, toSave);
+            return
         }
+        // KJ: RESEARCH - modification end
+
         // add the new nodes
         let key = nibbles_1.bufferToNibbles(k);
         // Check if the last node is a leaf and the key matches to this
