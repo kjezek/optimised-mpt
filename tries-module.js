@@ -59,8 +59,9 @@ exports.iterateBucketTree = function (root, cb1, onDone) {
  * @param file
  * @param cb callback
  * @param parallelism number of parallel threads to insert in a trie
+ * @param db database
  */
-exports.readInputTries = function(file, parallelism, cb) {
+exports.readInputTries = function(file, parallelism, db, cb) {
     const stream = fs.createReadStream(file);
     const rl = readline.createInterface({
         input: stream,
@@ -89,6 +90,8 @@ exports.readInputTries = function(file, parallelism, cb) {
        console.timeEnd('trie-dump-read-' + file);
         q.drain = () => {
             console.log("Last root: " + utils.bufferToHex(lastRoot))
+            // all inserted - compaction of all tries
+            db.compact()
         }
     });
 }
@@ -136,12 +139,13 @@ exports.Speed = class {
  * @param speedFile the file to write speed statistics into
  * @param batchSize the number of elements to insert before a new tree is created
  * @param parallelism number of threads to insert in - use only "1" when paired with batch size  // TODO - use only one at the moment
- * @param trieFactory
+ * @param db database
+ * @param trieFactory trie
  */
-exports.insertAll = function (inputFile, speedFile, parallelism, batchSize, trieFactory) {
+exports.insertAll = function (inputFile, speedFile, parallelism, batchSize, db, trieFactory) {
 
     // fs.unlinkSync(speedFile)
-    let trie = trieFactory();
+    let trie = trieFactory(db);
     let count = 0;
     const speed = new exports.Speed(speedFile, parallelism, batchSize)
     const dumpTrieCB = (key, value, onDone) => {
@@ -161,7 +165,7 @@ exports.insertAll = function (inputFile, speedFile, parallelism, batchSize, trie
             onDone(err, trie.root)   // send the last root
         })
     }
-    exports.readInputTries(inputFile, parallelism, dumpTrieCB)
+    exports.readInputTries(inputFile, parallelism, db, dumpTrieCB)
 }
 
 exports.baseTrie = (db, hashRoot) => {
@@ -169,10 +173,11 @@ exports.baseTrie = (db, hashRoot) => {
     return new BaseTrie(db, stateRoot)
 }
 
-exports.bucketTrie = (db, hashRoot) => {
-    const stateRoot = utils.toBuffer(hashRoot);
-    return new BucketTrie(db, stateRoot)
+exports.bucketTrie = (db, maxHeight, hashRoot) => {
+    const stateRoot = hashRoot ? utils.toBuffer(hashRoot) : undefined;
+    return new BucketTrie(db, maxHeight, stateRoot)
 }
+
 
 /**
  * Dump a trie for the hash in a CSV file

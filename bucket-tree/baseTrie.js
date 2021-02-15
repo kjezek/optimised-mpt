@@ -307,14 +307,15 @@ class Trie {
                 this.memoryTries[prefixStr] = memoryTrie
                 // console.log("In-memory trie for new prefix: " + prefixStr)
                 // Recover in-memory trie from the database
+                // TODO - the root hash must be recomputed once this trie is recovered from the DB
                 await this.db.prefixRange(prefixBuffer,  (k1, v1, onDone) =>
                     memoryTrie.put(k1, v1).then(onDone))
             }
             // Store in in-memory trie to get hash of this trie
             await memoryTrie.put(k, value)
 
-            const keyStr = utils.bufferToHex(k);
-            console.log("Prefix: " + prefixStr + " Key: " + keyStr)
+            // const keyStr = utils.bufferToHex(k);
+            // console.log("Prefix: " + prefixStr + " Key: " + keyStr)
 
             // save the key->value directly
             toSave.push({
@@ -323,7 +324,7 @@ class Trie {
                 value: value,
             });
 
-            // TODO - we must add an extra node to stack to correctly recompute the stack - a leaf node?
+            // TODO - we must add an extra node to stack to correctly recompute the root hash from the in-memory trie - a leaf node?
             const key = nibbles_1.bufferToNibbles(k);
             await this._saveStack(key, stack, toSave);
             return

@@ -81,9 +81,10 @@ class DB {
         // console.log("In-memory trie for up-to prefix: " + endStr)
         return new Promise((resolve) => {
             // put all keys in this queue, and resolve this promise once all values are processed in the callback
-            const q = async.queue((task, onDone) =>
+            const q = async.queue((task, onDone) => {
+                // console.log("Recovered: " + utils.bufferToHex(task.key) + "->" )
                 cb(task.key, task.value, onDone)
-            , 1000);
+            }, 1000);
             this._leveldb.createReadStream({
                 gte: keyPrefix,
                 lte: end
