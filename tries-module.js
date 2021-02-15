@@ -169,7 +169,7 @@ exports.insertAll = function (inputFile, speedFile, parallelism, batchSize, db, 
 }
 
 exports.baseTrie = (db, hashRoot) => {
-    const stateRoot = utils.toBuffer(hashRoot);
+    const stateRoot = hashRoot ? utils.toBuffer(hashRoot) : undefined;
     return new BaseTrie(db, stateRoot)
 }
 
