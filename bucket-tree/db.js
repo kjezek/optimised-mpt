@@ -92,7 +92,7 @@ class DB {
                 gte: keyPrefix,
                 lte: end
             }).on('data', data => {
-                console.log("Submitted " + c + " " + data.key + "->" + data.value)
+                console.log("Submitted " + c + " " + utils.bufferToHex(new Buffer(data.key)) + "->" + utils.bufferToHex(new Buffer(data.value)))
                 q.push({"key": new Buffer(data.key), "value": new Buffer(data.value)})
                 }
             ).on('end', ()=> q.drain = () => {
