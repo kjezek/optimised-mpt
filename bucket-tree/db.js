@@ -91,13 +91,15 @@ class DB {
                 gte: keyPrefix,
                 lte: end
             }).on('data', data => {
-                console.log("Submitted " + c + " " + utils.bufferToHex(task.key) + "->" + utils.bufferToHex(task.value))
+                console.log("Submitted " + c + " " + utils.bufferToHex(data.key) + "->" + utils.bufferToHex(data.value))
                 q.push({"key": new Buffer(data.key), "value": new Buffer(data.value)})
                 }
             ).on('end', ()=> q.drain = () => {
                 console.log("Trie read")
                 resolve()
-            })
+            }).on('error', function (err) {
+                    console.log('Oh my!', err)
+                })
         })
     }
     // KJ: RESEARCH - end
