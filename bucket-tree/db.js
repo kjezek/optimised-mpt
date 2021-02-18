@@ -89,10 +89,10 @@ class DB {
                 cb(task.key, task.value, onDone)
             }, 1000);
             this._leveldb.createReadStream({
-                gte: startStr,
-                lte: endStr
+                gte: keyPrefix,
+                lte: end
             }).on('data', data => {
-                console.log("Submitted " + c + " " + utils.bufferToHex(data.key) + "->" + utils.bufferToHex(data.value))
+                console.log("Submitted " + c + " " + data.key + "->" + data.value)
                 q.push({"key": new Buffer(data.key), "value": new Buffer(data.value)})
                 }
             ).on('end', ()=> q.drain = () => {
