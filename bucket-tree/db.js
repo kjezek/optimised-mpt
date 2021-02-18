@@ -84,14 +84,20 @@ class DB {
             // put all keys in this queue, and resolve this promise once all values are processed in the callback
             const q = async.queue((task, onDone) => {
                 // console.log("Recovered: " + utils.bufferToHex(task.key) + "->" )
-                if ( (++c % 10) === 0 ) console.log("Submitted " + c + " " + utils.bufferToHex(task.key) + "->" + utils.bufferToHex(task.value))
+                // if ( (++c % 10) === 0 ) console.log("Submitted " + c + " " + utils.bufferToHex(task.key) + "->" + utils.bufferToHex(task.value))
                 cb(task.key, task.value, onDone)
             }, 1000);
             this._leveldb.createReadStream({
                 gte: keyPrefix,
                 lte: end
-            }).on('data', data => q.push({"key": new Buffer(data.key), "value": new Buffer(data.value)})
-            ).on('end', ()=> q.drain = resolve)
+            }).on('data', data => {
+                console.log("Submitted " + c + " " + utils.bufferToHex(task.key) + "->" + utils.bufferToHex(task.value))
+                q.push({"key": new Buffer(data.key), "value": new Buffer(data.value)})
+                }
+            ).on('end', ()=> q.drain = () => {
+                console.log("Trie read")
+                resolve()
+            })
         })
     }
     // KJ: RESEARCH - end
