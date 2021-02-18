@@ -305,7 +305,7 @@ class Trie {
                 // when DB is not defined, in-memory db is used
                 memoryTrie = new Trie(null, 100000000000000)
                 this.memoryTries[prefixStr] = memoryTrie
-                // console.log("In-memory trie for new prefix: " + prefixStr)
+                console.log("In-memory trie for new prefix: " + prefixStr)
                 // Recover in-memory trie from the database
                 // TODO - the root hash must be recomputed once this trie is recovered from the DB
                 await this.db.prefixRange(prefixBuffer,  (k1, v1, onDone) =>

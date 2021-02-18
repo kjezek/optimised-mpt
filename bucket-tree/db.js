@@ -78,7 +78,7 @@ class DB {
     async prefixRange(keyPrefix, cb) {
         const endStr = utils.bufferToHex(keyPrefix) + "FF"
         const end = utils.toBuffer(endStr)
-        // console.log("In-memory trie for up-to prefix: " + endStr)
+        console.log("In-memory trie for up-to prefix: " + endStr)
         return new Promise((resolve) => {
             // put all keys in this queue, and resolve this promise once all values are processed in the callback
             const q = async.queue((task, onDone) => {
