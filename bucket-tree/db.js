@@ -79,7 +79,9 @@ class DB {
         const endStr = utils.bufferToHex(keyPrefix) + "FF"
         const end = utils.toBuffer(endStr)
         const startStr = utils.bufferToHex(keyPrefix);
-        console.log("In-memory trie for up-to prefix: " + endStr)
+
+        // console.log("In-memory trie for new prefix: " + startStr)
+        // console.log("In-memory trie for up-to prefix: " + endStr)
         let c = 0
         return new Promise((resolve) => {
             // put all keys in this queue, and resolve this promise once all values are processed in the callback
@@ -89,8 +91,8 @@ class DB {
                 cb(task.key, task.value, onDone)
             }, 1000);
             this._leveldb.createReadStream(
+                // TODO - this condition is crashing
             //     {
-            //     // limit: 10,
             //     gte: keyPrefix,
             //     lte: end
             // }
