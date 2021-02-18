@@ -88,12 +88,14 @@ class DB {
                 // if ( (++c % 10) === 0 ) console.log("Submitted " + c + " " + utils.bufferToHex(task.key) + "->" + utils.bufferToHex(task.value))
                 cb(task.key, task.value, onDone)
             }, 1000);
-            this._leveldb.createReadStream({
-                gte: keyPrefix,
-                lte: end,
-                limit: 10
-            }).on('data', data => {
-                console.log("Submitted " + c + " " + utils.bufferToHex(new Buffer(data.key)) + "->" + utils.bufferToHex(new Buffer(data.value)))
+            this._leveldb.createReadStream(
+            //     {
+            //     // limit: 10,
+            //     gte: keyPrefix,
+            //     lte: end
+            // }
+            ).on('data', data => {
+                console.log("Submitted " + ++c + " " + utils.bufferToHex(new Buffer(data.key)) + "->" + utils.bufferToHex(new Buffer(data.value)))
                 q.push({"key": new Buffer(data.key), "value": new Buffer(data.value)})
                 }
             ).on('end', ()=> q.drain = () => {
