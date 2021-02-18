@@ -78,6 +78,7 @@ class DB {
     async prefixRange(keyPrefix, cb) {
         const endStr = utils.bufferToHex(keyPrefix) + "FF"
         const end = utils.toBuffer(endStr)
+        const startStr = utils.bufferToHex(keyPrefix);
         console.log("In-memory trie for up-to prefix: " + endStr)
         let c = 0
         return new Promise((resolve) => {
@@ -88,8 +89,8 @@ class DB {
                 cb(task.key, task.value, onDone)
             }, 1000);
             this._leveldb.createReadStream({
-                gte: keyPrefix,
-                lte: end
+                gte: startStr,
+                lte: endStr
             }).on('data', data => {
                 console.log("Submitted " + c + " " + utils.bufferToHex(data.key) + "->" + utils.bufferToHex(data.value))
                 q.push({"key": new Buffer(data.key), "value": new Buffer(data.value)})
