@@ -90,7 +90,8 @@ class DB {
             }, 1000);
             this._leveldb.createReadStream({
                 gte: keyPrefix,
-                lte: end
+                lte: end,
+                limit: 10
             }).on('data', data => {
                 console.log("Submitted " + c + " " + utils.bufferToHex(new Buffer(data.key)) + "->" + utils.bufferToHex(new Buffer(data.value)))
                 q.push({"key": new Buffer(data.key), "value": new Buffer(data.value)})
