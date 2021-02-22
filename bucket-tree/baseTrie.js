@@ -307,8 +307,8 @@ class Trie {
                 this.memoryTries[prefixStr] = memoryTrie
                 // Recover in-memory trie from the database
                 // TODO - the root hash must be recomputed once this trie is recovered from the DB
-                await this.db.prefixRange(prefixBuffer,  (k1, v1, onDone) =>
-                    memoryTrie.put(k1, v1).then(onDone))
+                // await this.db.prefixRange(prefixBuffer,  (k1, v1, onDone) =>
+                //     memoryTrie.put(k1, v1).then(onDone))
             }
             // Store in in-memory trie to get hash of this trie
             await memoryTrie.put(k, value)
