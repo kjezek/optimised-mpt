@@ -91,16 +91,15 @@ class DB {
                 cb(task.key, task.value, onDone)
             }, 1000);
             this._leveldb.createReadStream(
-                // TODO - this condition is crashing
                 {
                 gte: keyPrefix,
                 lte: end
             }
             ).on('data', data => {
-                console.log("Submitted " + ++c + " " + utils.bufferToHex(new Buffer(data.key)) + "->" + utils.bufferToHex(new Buffer(data.value)))
+                // console.log("Submitted " + ++c + " " + utils.bufferToHex(new Buffer(data.key)) + "->" + utils.bufferToHex(new Buffer(data.value)))
                 q.push({"key": new Buffer(data.key), "value": new Buffer(data.value)})
                 }
-            ).on('end', ()=> q.drain = () => resolve
+            ).on('end', ()=> q.drain = resolve
             ).on('error', function (err) {
                     console.log('Oh my!', err)
                 })

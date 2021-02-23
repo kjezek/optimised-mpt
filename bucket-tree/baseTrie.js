@@ -10,6 +10,8 @@ const nibbles_1 = require("./util/nibbles");
 const trieNode_1 = require("./trieNode");
 const assert = require('assert');
 const utils = require('ethereumjs-util');
+const level = require('level');
+
 
 /**
  * Use `import { BaseTrie as Trie } from 'merkle-patricia-tree'` for the base interface.
@@ -303,7 +305,7 @@ class Trie {
             let memoryTrie = this.memoryTries[prefixStr]
             if (memoryTrie === undefined) {
                 // when DB is not defined, in-memory db is used
-                const tempDB = "db-temp"
+                const tempDB = level("db-temp/" + prefixStr)
                 memoryTrie = new Trie(tempDB, 100000000000000)
                 this.memoryTries[prefixStr] = memoryTrie
                 // Recover in-memory trie from the database
