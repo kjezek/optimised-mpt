@@ -80,7 +80,7 @@ class DB {
         const end = utils.toBuffer(endStr)
         const startStr = utils.bufferToHex(keyPrefix);
 
-        // console.log("In-memory trie for new prefix: " + startStr)
+        console.log("In-memory trie for new prefix: " + startStr)
         // console.log("In-memory trie for up-to prefix: " + endStr)
         let c = 0
         return new Promise((resolve) => {
@@ -97,11 +97,14 @@ class DB {
             }
             ).on('data', data => {
                 // console.log("Submitted " + ++c + " " + utils.bufferToHex(new Buffer(data.key)) + "->" + utils.bufferToHex(new Buffer(data.value)))
-                q.push({"key": new Buffer(data.key), "value": new Buffer(data.value)})
+                q.push({"key": new Buffer(data.key), "value": new Buffer(data.value)}, (err) => {
+                    if (err) console.log("Err: " + err)
+                })
                 }
             ).on('end', ()=> {
                 // resolve if already done, or enable drain if still running
                 if (!q.length) resolve(); else q.drain = resolve
+                console.log("DONE : " + startStr)
                 }
             ).on('error', function (err) {
                     console.log('Oh my!', err)

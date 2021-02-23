@@ -152,13 +152,14 @@ exports.insertAll = function (inputFile, speedFile, parallelism, batchSize, db, 
     const speed = new exports.Speed(speedFile, parallelism, batchSize)
     const dumpTrieCB = (key, value, onDone) => {
 
+        // TODO - this has no sense - Trie is backed up by the database and holds no in-memory nodes
         // create a new tree not to bloat memory
-        if (count++ % batchSize === 0) {
-            // const root = trie.root
-            // trie = trieFactory();
-            // trie.root = root;
-            trie = trie.copy()
-        }
+        // if (count++ % batchSize === 0) {
+        //     // const root = trie.root
+        //     // trie = trieFactory();
+        //     // trie.root = root;
+        //     trie = trie.copy()
+        // }
 
         trie.put(key, value).then(err => {
             if (err) console.error("Err: " + err)
