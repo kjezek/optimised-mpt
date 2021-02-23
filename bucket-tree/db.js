@@ -101,6 +101,7 @@ class DB {
                 }
             ).on('end', ()=> {
                 // resolve if already done, or enable drain if still running
+                console.log("registering DONE : " + startStr)
                 if (!q.length) resolve(); else q.drain = () => {
                     console.log("DONE : " + startStr)
                     resolve()
