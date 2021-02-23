@@ -97,14 +97,14 @@ class DB {
             }
             ).on('data', data => {
                 // console.log("Submitted " + ++c + " " + utils.bufferToHex(new Buffer(data.key)) + "->" + utils.bufferToHex(new Buffer(data.value)))
-                q.push({"key": new Buffer(data.key), "value": new Buffer(data.value)}, (err) => {
-                    if (err) console.log("Err: " + err)
-                })
+                q.push({"key": new Buffer(data.key), "value": new Buffer(data.value)})
                 }
             ).on('end', ()=> {
                 // resolve if already done, or enable drain if still running
-                if (!q.length) resolve(); else q.drain = resolve
-                console.log("DONE : " + startStr)
+                if (!q.length) resolve(); else q.drain = () => {
+                    console.log("DONE : " + startStr)
+                    resolve()
+                }
                 }
             ).on('error', function (err) {
                     console.log('Oh my!', err)
