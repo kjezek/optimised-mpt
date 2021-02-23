@@ -80,7 +80,7 @@ class DB {
         const end = utils.toBuffer(endStr)
         const startStr = utils.bufferToHex(keyPrefix);
 
-        console.log("In-memory trie for new prefix: " + startStr)
+        // console.log("In-memory trie for new prefix: " + startStr)
         // console.log("In-memory trie for up-to prefix: " + endStr)
         let c = 0
         return new Promise((resolve) => {
