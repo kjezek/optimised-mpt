@@ -86,7 +86,7 @@ class DB {
         return new Promise((resolve) => {
             // put all keys in this queue, and resolve this promise once all values are processed in the callback
             const q = async.queue((task, onDone) => {
-                console.log("Recovered: " + utils.bufferToHex(task.key) + "->" )
+                // console.log("Recovered: " + utils.bufferToHex(task.key) + "->" )
                 // if ( (++c % 10) === 0 ) console.log("Submitted " + c + " " + utils.bufferToHex(task.key) + "->" + utils.bufferToHex(task.value))
                 cb(task.key, task.value, onDone)
             }, 1000);
@@ -96,19 +96,12 @@ class DB {
                 lte: end
             }
             ).on('data', data => {
-                console.log("Submitted " + ++c + " " + utils.bufferToHex(new Buffer(data.key)) + "->" + utils.bufferToHex(new Buffer(data.value)))
+                // console.log("Submitted " + ++c + " " + utils.bufferToHex(new Buffer(data.key)) + "->" + utils.bufferToHex(new Buffer(data.value)))
                 q.push({"key": new Buffer(data.key), "value": new Buffer(data.value)})
                 }
             ).on('end', ()=> {
                 // resolve if already done, or enable drain if still running
-                console.log("registering DONE : " + startStr)
-                if (!q.length()) {
-                    console.log("DONE empty Q: " + startStr)
-                    resolve();
-                } else q.drain = () => {
-                    console.log("DONE from drain: " + startStr)
-                    resolve()
-                }
+                if (!q.length()) resolve(); else q.drain = resolve
                 }
             ).on('error', function (err) {
                     console.log('Oh my!', err)
