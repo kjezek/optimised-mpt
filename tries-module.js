@@ -94,7 +94,7 @@ exports.readInputTries = function(file, parallelism, db, cb) {
 
     rl.on('close', () => {
        console.timeEnd('trie-dump-read-' + file);
-       if (!q.length) donCB(); else q.drain = donCB
+       if (!q.length()) donCB(); else q.drain = donCB
     });
 }
 
