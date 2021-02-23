@@ -86,13 +86,15 @@ exports.readInputTries = function(file, parallelism, db, cb) {
         })
     });
 
+    const donCB = () => {
+        console.log("Last root: " + utils.bufferToHex(lastRoot))
+        // all inserted - compaction of all tries
+        db.compact()
+    }
+
     rl.on('close', () => {
        console.timeEnd('trie-dump-read-' + file);
-        q.drain = () => {
-            console.log("Last root: " + utils.bufferToHex(lastRoot))
-            // all inserted - compaction of all tries
-            db.compact()
-        }
+       if (!q.length) donCB(); else q.drain = donCB
     });
 }
 

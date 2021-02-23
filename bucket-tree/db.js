@@ -99,7 +99,10 @@ class DB {
                 // console.log("Submitted " + ++c + " " + utils.bufferToHex(new Buffer(data.key)) + "->" + utils.bufferToHex(new Buffer(data.value)))
                 q.push({"key": new Buffer(data.key), "value": new Buffer(data.value)})
                 }
-            ).on('end', ()=> q.drain = resolve
+            ).on('end', ()=> {
+                // resolve if already done, or enable drain if still running
+                if (!q.length) resolve(); else q.drain = resolve
+                }
             ).on('error', function (err) {
                     console.log('Oh my!', err)
                 })
