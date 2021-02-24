@@ -17,4 +17,4 @@ const maxHeight = parseInt(args[3])
 const file = args[4];
 
 /** Init with DB path. */
-tries.init(dbPath, (db) => tries.insertAll(file, "speed-bucket-trie.csv", parallelism, batchSize, db, (db) => tries.bucketTrie(db, maxHeight)));
+tries.init(dbPath, (db) => tries.insertAll(file, "speed-bucket-trie.csv", parallelism, batchSize, db, maxHeight, (db) => tries.bucketTrie(db, maxHeight)));

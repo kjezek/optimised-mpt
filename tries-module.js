@@ -104,13 +104,13 @@ exports.readInputTries = function(file, parallelism, db, cb) {
  */
 exports.Speed = class {
 
-    constructor(file, parallelism, batchSize) {
+    constructor(file, parallelism, maxHeight) {
         this.count = 0;
         this.start = Date.now()
         this.M = 1000000
         this.file = file
-        this.batchSize = batchSize
         this.parallelism = parallelism
+        this.maxHeight = maxHeight
     }
 
     tick() {
@@ -123,7 +123,7 @@ exports.Speed = class {
             const mCount = this.count / this.M
             console.log( (mCount) + "M elements inserted. Speed: " + speed + " items/s");
 
-            const line = this.parallelism + "," + this.batchSize + "," + mCount + "," + speed + "\n"
+            const line = this.maxHeight + "," + this.parallelism + "," + mCount + "," + speed + "\n"
             fs.appendFile(this.file, line, err => {
                 if (err) console.error("Err: " + err)
             });
@@ -142,14 +142,15 @@ exports.Speed = class {
  * @param batchSize the number of elements to insert before a new tree is created
  * @param parallelism number of threads to insert in - use only "1" when paired with batch size  // TODO - use only one at the moment
  * @param db database
+ * @param maxHeight bucket trie max height
  * @param trieFactory trie
  */
-exports.insertAll = function (inputFile, speedFile, parallelism, batchSize, db, trieFactory) {
+exports.insertAll = function (inputFile, speedFile, parallelism, batchSize, db, maxHeight, trieFactory) {
 
     // fs.unlinkSync(speedFile)
     let trie = trieFactory(db);
     let count = 0;
-    const speed = new exports.Speed(speedFile, parallelism, batchSize)
+    const speed = new exports.Speed(speedFile, parallelism, maxHeight)
     const dumpTrieCB = (key, value, onDone) => {
 
         // TODO - this has no sense - Trie is backed up by the database and holds no in-memory nodes
