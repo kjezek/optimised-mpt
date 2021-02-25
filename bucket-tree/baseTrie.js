@@ -344,6 +344,9 @@ class Trie {
             // TODO - we must add an extra node to stack to correctly recompute the root hash from the in-memory trie - a leaf node?
             const key = nibbles_1.bufferToNibbles(k);
             await this._saveStack(key, stack, toSave);
+
+            tempDB.close()
+
             return
         }
         // KJ: RESEARCH - modification end

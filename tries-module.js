@@ -162,10 +162,12 @@ exports.insertAll = function (inputFile, speedFile, parallelism, batchSize, db, 
         //     trie = trie.copy()
         // }
 
+        // console.log("Submitted:  " + utils.bufferToHex(key) + "->" + utils.bufferToHex(value) + ", current root: " + utils.bufferToHex(trie.root))
+
         trie.put(key, value).then(err => {
             if (err) console.error("Err: " + err)
             speed.tick(); // tick one more element done
-            // console.log("current root " + utils.bufferToHex(trie.root) + ": " + utils.bufferToHex(key) + "->" + utils.bufferToHex(value))
+            // console.log("DONE:  " + utils.bufferToHex(key) + "->" + utils.bufferToHex(value) + ", current root: " + utils.bufferToHex(trie.root))
             onDone(err, trie.root)   // send the last root
         })
     }
