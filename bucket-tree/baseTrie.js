@@ -303,16 +303,28 @@ class Trie {
             const prefixStr = utils.bufferToHex(prefixBuffer)
 
             // Locate and pre-load the in memory trie
-            let memoryTrie = this.memoryTries[prefixStr]
-            if (memoryTrie === undefined) {
+            // let memoryTrie = this.memoryTries[prefixStr]
+            // if (memoryTrie === undefined) {
+            //     // when DB is not defined, in-memory db is used
+            //     memoryTrie = new Trie(tempdb, 100000000000000)
+            //     this.memoryTries[prefixStr] = memoryTrie
+            //     // Recover in-memory trie from the database
+            //     // TODO - the root hash must be recomputed once this trie is recovered from the DB
+            //     await this.db.prefixRange(prefixBuffer,  (k1, v1, onDone) =>
+            //         memoryTrie.put(k1, v1).then(onDone))
+            // }
+
+            const memoryTrie = new Trie(tempdb, 100000000000000)
+            const flag = this.memoryTries[prefixStr]
+            if (flag === undefined) {
                 // when DB is not defined, in-memory db is used
-                memoryTrie = new Trie(tempdb, 100000000000000)
-                this.memoryTries[prefixStr] = memoryTrie
+                this.memoryTries[prefixStr] = true
                 // Recover in-memory trie from the database
                 // TODO - the root hash must be recomputed once this trie is recovered from the DB
                 await this.db.prefixRange(prefixBuffer,  (k1, v1, onDone) =>
                     memoryTrie.put(k1, v1).then(onDone))
             }
+
 
             // Store in in-memory trie to get hash of this trie
             await memoryTrie.put(k, value)
