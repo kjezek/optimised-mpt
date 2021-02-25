@@ -302,6 +302,7 @@ class Trie {
             const prefixBuffer = nibbles_1.nibblesToBuffer(prefixNibbles);
             const prefixStr = utils.bufferToHex(prefixBuffer)
 
+            // TODO - this is memory consuming, but not faster
             // Locate and pre-load the in memory trie
             // let memoryTrie = this.memoryTries[prefixStr]
             // if (memoryTrie === undefined) {
