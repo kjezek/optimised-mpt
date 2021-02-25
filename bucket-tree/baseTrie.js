@@ -11,6 +11,7 @@ const trieNode_1 = require("./trieNode");
 const assert = require('assert');
 const utils = require('ethereumjs-util');
 const level = require('level');
+const tempdb = level("db-tmp")
 
 
 /**
@@ -301,27 +302,12 @@ class Trie {
             const prefixBuffer = nibbles_1.nibblesToBuffer(prefixNibbles);
             const prefixStr = utils.bufferToHex(prefixBuffer)
 
-            // TODO this variant stores Trie in memory - but it seems it is too big for in-memory
             // Locate and pre-load the in memory trie
-            // let memoryTrie = this.memoryTries[prefixStr]
-            // if (memoryTrie === undefined) {
-            //     // when DB is not defined, in-memory db is used
-            //     memoryTrie = new Trie(null, 100000000000000)
-            //     this.memoryTries[prefixStr] = memoryTrie
-            //     // Recover in-memory trie from the database
-            //     // TODO - the root hash must be recomputed once this trie is recovered from the DB
-            //     await this.db.prefixRange(prefixBuffer,  (k1, v1, onDone) =>
-            //         memoryTrie.put(k1, v1).then(onDone))
-            // }
-
-            // This variant uses an extra temp database - it only pre-loads once
-            const tempDB = level("db-temp/" + prefixStr)
-            const memoryTrie = new Trie(tempDB, 100000000000000)
-
-            // pre-load once
-            let flag = this.memoryTries[prefixStr]
-            if (flag === undefined) {
-                this.memoryTries[prefixStr] = true
+            let memoryTrie = this.memoryTries[prefixStr]
+            if (memoryTrie === undefined) {
+                // when DB is not defined, in-memory db is used
+                memoryTrie = new Trie(tempdb, 100000000000000)
+                this.memoryTries[prefixStr] = memoryTrie
                 // Recover in-memory trie from the database
                 // TODO - the root hash must be recomputed once this trie is recovered from the DB
                 await this.db.prefixRange(prefixBuffer,  (k1, v1, onDone) =>
@@ -344,8 +330,6 @@ class Trie {
             // TODO - we must add an extra node to stack to correctly recompute the root hash from the in-memory trie - a leaf node?
             const key = nibbles_1.bufferToNibbles(k);
             await this._saveStack(key, stack, toSave);
-
-            tempDB.close()
 
             return
         }
